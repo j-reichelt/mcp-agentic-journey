@@ -47,4 +47,28 @@ graph TD
 
 ---
 
+## Running This Project Locally
+
+### 1. Prerequisites
+Ensure that Python 3.11+ and 'uv' package manager is installed. 'uv' is a modern project manager for Python, and considered a 'multi-tool' when working with various server packages or experimental frameworks.
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com
+cd <name_of_repo>
+
+# Create a virtual environment and install dependencies
+uv venv
+source .venv/bin/activate #On Windows use: .venv\Scripts\activate
+uv pip install mcp[cli] fastmcp
+```
+
+### 3. Testing the MCP Server
+Without booting up the entire AI client and interactively test the custom server tools run:
+```bash
+mcp dev <insert_name_of_server>/servery.py
+
+---
+
 
