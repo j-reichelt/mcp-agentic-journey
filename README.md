@@ -1,7 +1,7 @@
 # mcp-agentic-journey
 A journey into understanding the concepts behind MCP and how to implement it into a useable Agentic AI assistant. 
 
-The goal is to build an assistant that interface with local machine (files, notes), with the potential to migrate to a cloud service, and integrate third-party open-source MCP servers to expand capabilities.
+The goal is to build an assistant that interfaces with local machine (files, notes), with the potential to migrate to a cloud service, and integrate third-party open-source MCP servers to expand capabilities.
 
 ---
 ## Architecture Blueprint
