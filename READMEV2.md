@@ -167,5 +167,5 @@ mcp-agentic-journey/
 ```
 
 3. Hello World Server
-
-# using python to build out server - upcoming
+ 
+using python to build out server - upcoming
