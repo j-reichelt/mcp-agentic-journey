@@ -1,0 +1,11 @@
+MCP Project Notes - 
+
+determine server build: JavaScript vs Python
+
+server hosting: Heroku, Jango, Vista
+
+What purpose will the server have?: connect to an LLM, acting as a chat bot in capacity
+
+What LLM will connect to the server? What is the purpose of the LLM?
+
+Will API usage be added for functionality or tooling in the future?
