@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Environment / secrets — never commit real keys
+.env
+
+# Local notes data (sample notes are committed; real notes are not)
+servers/notes_server/notes_data/*
+!servers/notes_server/notes_data/welcome.md
+!servers/notes_server/notes_data/ideas.txt
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

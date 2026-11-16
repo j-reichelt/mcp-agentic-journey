@@ -6,8 +6,10 @@ Inspector and from the smoke-test client.
 
 Design principles (see READMEV2.md):
   * Least privilege   -> the server can only touch NOTES_DIR, nothing else.
-  * Read before write -> Phase 1 ships read-only tools only. Write/delete
-                         tools come later, behind a host confirmation step.
+  * Read before write -> read tools are annotated read_only_hint=True. The
+                         one write tool (write_note) is annotated
+                         read_only_hint=False so the Phase 2 host can require
+                         human confirmation before running it.
   * Untrusted output  -> note contents are returned as-is; the *host* must
                          treat them as untrusted data, never as instructions.
 
@@ -25,6 +27,7 @@ import sys
 from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
+from mcp.types import ToolAnnotations
 
 # --------------------------------------------------------------------------
 # Allow-listed notes directory (least privilege).
@@ -81,7 +84,7 @@ mcp = MCPServer(
 # --------------------------------------------------------------------------
 # Tools (model-controlled)
 # --------------------------------------------------------------------------
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def add(a: int, b: int) -> int:
     """Add two integers and return the sum.
 
@@ -91,7 +94,7 @@ def add(a: int, b: int) -> int:
     return a + b
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def list_notes() -> list[str]:
     """List the names of all notes in the allow-listed notes directory."""
     return sorted(
@@ -101,7 +104,7 @@ def list_notes() -> list[str]:
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def read_note(name: str) -> str:
     """Read a single note by filename (e.g. 'welcome.md').
 
@@ -112,6 +115,24 @@ def read_note(name: str) -> str:
     if not path.exists():
         raise FileNotFoundError(f"No note named {name!r}.")
     return path.read_text(encoding="utf-8")
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(read_only_hint=False, destructive_hint=True)
+)
+def write_note(name: str, content: str) -> str:
+    """Create or overwrite a note (a '.md' or '.txt' file) in the notes dir.
+
+    This is the project's first *write* tool. It is marked read_only_hint=False
+    so the host's agent loop can require human confirmation before running it
+    (see Phase 2). The same path validation as read_note applies: the name must
+    be a bare filename inside the allow-listed notes directory.
+    """
+    path = _resolve_in_notes_dir(name)
+    existed = path.exists()
+    path.write_text(content, encoding="utf-8")
+    action = "Overwrote" if existed else "Created"
+    return f"{action} {name} ({len(content)} chars)."
 
 
 # --------------------------------------------------------------------------

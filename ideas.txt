@@ -1,0 +1,3 @@
+Project ideas:
+- Add a write_note tool in a later phase, behind a host confirmation step.
+- Connect an open-source web-search server in Phase 3.

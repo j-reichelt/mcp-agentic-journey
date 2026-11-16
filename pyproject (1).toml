@@ -1,0 +1,24 @@
+[project]
+name = "mcp-agentic-journey"
+version = "0.1.0"
+description = "A journey into MCP: building an agentic assistant with the official MCP Python SDK."
+readme = "READMEV2.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Official MCP Python SDK v2.x, with the CLI extras (provides `mcp dev`,
+    # the MCP Inspector launcher). Pinned to the 2.x line; SDK 1.x used the
+    # old FastMCP module path and will not run this code.
+    "mcp[cli]>=2,<3",
+    # Phase 2: the Claude API drives the agent loop.
+    "anthropic>=2,<3",
+    # Load ANTHROPIC_API_KEY from a .env file.
+    "python-dotenv>=1,<2",
+]
+
+[tool.uv]
+# This is a learning repo, not a distributable library: we only want its
+# dependencies installed into the venv, not the repo itself built as a
+# package. `package = false` makes `uv sync` skip building the project.
+package = false
+# Phase 2 onward may add: anthropic, python-dotenv, langchain, etc.
+dev-dependencies = []

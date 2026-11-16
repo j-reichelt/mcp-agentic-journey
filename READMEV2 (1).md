@@ -37,7 +37,7 @@ flowchart TB
 * Package manager: uv
 * Server Framework: Official MCP Python SDK (`mcp`), using the `MCPServer` class
 * Orchestration / Client: SDK `Client` first (hand-written loop), then compare with LangChain / CrewAI (Targeting)
-* LLMs: Undecided. Candidates are Ollama (local Llama 3.2) or the Anthropic Claude API. Record the decision in the Journey Log.
+* LLMs: **Anthropic Claude API** (decided in Phase 2; see the Journey Log). Ollama (local Llama 3.2) kept as a candidate for a later local-vs-hosted comparison.
 * Debug tool: MCP Inspector (launched with `mcp dev`)
 
 A note on naming: "FastMCP" refers to two different things. Inside the official SDK, the high-level server class was `FastMCP` in SDK 1.x and was renamed `MCPServer` in SDK 2.x. Separately, there is a community-maintained package called `fastmcp`. This project uses only the official SDK to keep the learning path clear.
@@ -81,12 +81,15 @@ flowchart LR
 ### Phase 2: The Agentic Client Loop (The Brain)
 
 * Goal: Write the client loop that allows an LLM to autonomously discover and execute custom server tools.
-* Status: Upcoming
-* Planned approach:
-   * Connect to the Phase 1 server with the SDK `Client`.
-   * Convert MCP tool definitions into the LLM provider's tool-calling format.
-   * Loop until the model gives a final answer, with a maximum iteration limit.
-   * Ask the user for confirmation before any write operation.
+* Status: In progress
+* LLM decision: **Anthropic Claude API** drives the loop (most reliable tool-calling to learn against). Model is set with `ANTHROPIC_MODEL` and defaults to `claude-sonnet-5-5`. Ollama remains a candidate for a later local/privacy comparison.
+* What was done:
+   * Built `client/agent.py`: connects to the Phase 1 server, converts MCP tool definitions to the Anthropic tools format, and loops (`tools/call` -> tool result -> model) until a final answer or a 10-iteration cap.
+   * Added a guarded write tool, `write_note`, on the server (annotated `read_only_hint=False`). The loop requires human confirmation before running any non-read-only tool.
+   * `client/test_agent_loop.py` exercises the loop against the real server with a fake LLM (no API key), covering the read flow, write-approved, write-denied, and the iteration cap.
+* Up next:
+   * Run it against the live API and capture one real multi-tool transcript for the log.
+   * Decide whether tool results should be truncated/size-capped before returning to the model.
 
 ```mermaid
 sequenceDiagram
@@ -203,3 +206,25 @@ cp .env.example .env
 # then edit .env and add your ANTHROPIC_API_KEY (or Ollama settings)
 ```
 `.env` is gitignored — never commit real keys.
+
+7. Run the agent loop (Phase 2)
+
+With your `ANTHROPIC_API_KEY` in `.env`, let the model use the server's tools
+to answer a question:
+
+```bash
+python client/agent.py "What do my notes say about project ideas?"
+```
+
+The host lists the server's tools, hands them to Claude, and loops —
+running each tool the model calls and feeding the result back — until Claude
+gives a final answer or the 10-iteration cap trips. Read-only tools run
+automatically; the write tool (`write_note`) pauses for a `[confirm] y/N`
+prompt first. Set a different model with `ANTHROPIC_MODEL` if you like.
+
+Prefer to check the loop mechanics without spending API calls? The loop tests
+use a fake LLM and need no key:
+
+```bash
+python client/test_agent_loop.py   # ends with "All agent-loop tests passed."
+```
