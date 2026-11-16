@@ -167,5 +167,39 @@ mcp-agentic-journey/
 ```
 
 3. Hello World Server
- 
-using python to build out server - upcoming
+`servers/notes_server/server.py` is a minimal, read-only notes server built on the official MCP Python SDK v2.x (`MCPServer`, formerly `FastMCP`). It exposes:
+- Tools (model-controlled): `add(a, b)` as a round-trip sanity check, plus
+`list_notes()` and `read_note(name)`.
+- Resource (application-controlled): `notes://welcome`.
+- Prompt (user-controlled): `summarize(topic)`.
+It follows the project's design principles: the server can only touch the
+allow-listed `NOTES_DIR` (defaults to `servers/notes_server/notes_data`), note
+filenames are validated to block `..` traversal and symlink escapes, and all
+tools are read-only for now. Logs go to stderr, because stdout is reserved for
+the JSON-RPC stream on the stdio transport.
+4. Run and inspect it
+Launch the server with the MCP Inspector, a browser UI for calling each
+primitive by hand (this is the Phase 1 "call every primitive" step):
+```bash
+mcp dev servers/notes_server/server.py
+```
+The Inspector prints a local URL. Open it, connect, then use the Tools,
+Resources, and Prompts tabs to call `add`, `list_notes`, `read_note`, read the
+`notes://welcome` resource, and fetch the `summarize` prompt. Tip: open your
+browser's network tab to capture a raw `tools/call` JSON-RPC exchange to
+annotate for the Journey Log.
+5. Smoke test (no LLM yet)
+`client/smoke_test.py` is a hand-written MCP client. It launches the server as
+a stdio subprocess, lists tools, calls them, and reads the resource — proving
+the server works end to end before the Phase 2 agent loop adds an LLM:
+```bash
+python client/smoke_test.py
+```
+Expected output ends with `Smoke test passed.` and shows `add(2, 3) -> 5`,
+the note list, the welcome note contents, and the `summarize` prompt.
+6. Configure secrets (needed from Phase 2 onward)
+```bash
+cp .env.example .env
+# then edit .env and add your ANTHROPIC_API_KEY (or Ollama settings)
+```
+`.env` is gitignored — never commit real keys.
